@@ -4,7 +4,7 @@ from sympy import isprime
 
 class Funciones:
     def __init__(self):
-        pass
+        pass 
         
     # k = 128
     # l = n - k = 1024 - 128

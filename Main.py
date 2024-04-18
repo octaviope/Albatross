@@ -3,7 +3,7 @@ from Funciones import Funciones
 n = 1024 # Numero de participantes
 q = 0 # Numero primo
 p = 0 # Numero primo
-g = [1,2,3,4] # Generadores
+g = [1,2,3,4] # Generadores 
 alpha = [1,2,3,4]
 k = 128 # Grado del polinomio
 x1 = [1,2,3,4]

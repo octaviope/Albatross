@@ -1,5 +1,4 @@
 import unittest
-import hash
 
 class TestCalculadora(unittest.TestCase):
 
