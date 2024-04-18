@@ -1,5 +1,3 @@
-from Hash import Hash
-from LDEI import LDEI
 from Funciones import Funciones
 
 n = 1024 # Numero de participantes
@@ -11,8 +9,8 @@ k = 128 # Grado del polinomio
 x1 = [1,2,3,4]
 P = [1,2,3,4]
 
-hash_instance = Hash()
-print(hash_instance.hash_ZZp(43, g, alpha))
+#hash_instance = Hash()
+#print(hash_instance.hash_ZZp(43, g, alpha))
 
     #Inicializamos un objeto "x" de la clase LEDI
 #x = LDEI()
