@@ -2,7 +2,7 @@
 
 from sympy import isprime
 
-class funciones:
+class Funciones:
     def __init__(self):
         pass
         
