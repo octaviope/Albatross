@@ -1,10 +1,8 @@
 import hashlib
 from sympy import GF
 
-class hash:
-    def __init__(self):
-        pass
-
+class Hash:
+    
     def string_to_int(self, q: int, input: str) -> int:
         GF_q = GF(q)
         output = GF_q(0) # Inicializamos el resultado como un elemento del anillo de Galois
@@ -28,6 +26,8 @@ class hash:
     def hash_ZZp (self, q: int, x: list[int], a: list[int]):
         msg = self.int_to_string(x,a)
         digest = self.sha3_512(msg)
+        print("Mensaje: ", msg)
+        print("Codigo hash: ", digest)
         return self.string_to_int(q, digest)
         
         
