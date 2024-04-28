@@ -1,6 +1,8 @@
 # Aqui iran las funciones que seran utilies durante la immplementacion del protocolo Albatross.
 
 from sympy import isprime
+from sympy import ZZ, ZZ_p
+
 
 class Funciones:
     def __init__(self):
@@ -23,3 +25,18 @@ class Funciones:
             q += 3 * n
             p += 6 * n
             r += 1 
+
+
+    def generator(g: int, q: int): #Falta implementar el mod q
+        for i in range(2, 2*q + 1):
+            po = i**2
+            if po == 1:
+                continue
+            po = i**q
+            if po == 1:
+                continue
+            g = i
+            return
+        return
+
+        
