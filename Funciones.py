@@ -9,6 +9,9 @@ class Funciones:
     # k = 128
     # l = n - k = 1024 - 128
     def findprime(self, k: int, l: int):
+        if ((k==0) and (l==0)):
+            k = 11
+            l = 117
         n = 2 ** k
         s = (k % 2) - (l % 2)
         tmp = 2 ** l

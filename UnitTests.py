@@ -1,15 +1,21 @@
 import unittest
 from Hash import Hash
+from LDEI import LDEI
 
 class Tests(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Hash variables
         self.h = Hash()
+        self.LDEI = LDEI()
         self.lista1 = [1, 2, 3, 4, 5]
         self.lista2 = [7, 4, 9, 2, 6]
         
     ### LDEI Tests ###
+    def test_probar(self):
+        #resultado = self.LDEI.probar(q, p, g, alpha, k, x, P)
+        self.assertEqual("resultado", "1234574926", "Resultado esperado: .")
+
     
     ### Hash Tests ###
     def test_1_int_to_string(self):

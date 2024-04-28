@@ -26,8 +26,6 @@ class Hash:
     def hash_ZZp (self, q: int, x: list[int], a: list[int]):
         msg = self.int_to_string(x,a)
         digest = self.sha3_512(msg)
-        print("Mensaje: ", msg)
-        print("Codigo hash: ", digest)
         return self.string_to_int(q, digest)
         
         
