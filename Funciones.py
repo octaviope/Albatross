@@ -3,15 +3,8 @@
 from sympy import isprime
 
 class Funciones:
-    def __init__(self):
-        pass 
-        
-    # k = 128
-    # l = n - k = 1024 - 128
-    def findprime(self, k: int, l: int):
-        if ((k==0) and (l==0)):
-            k = 11
-            l = 117
+
+    def findprime(k: int, l: int):
         n = 2 ** k
         s = (k % 2) - (l % 2)
         tmp = 2 ** l
@@ -26,3 +19,17 @@ class Funciones:
             q += 3 * n
             p += 6 * n
             r += 1 
+
+
+    def generator(q:int): 
+        for i in range(2, 2*q + 1):
+            po = pow(i, 2, q)
+            if po == 1:
+                continue
+            po = pow(i, q, q)
+            if po == 1:
+                continue
+            return i 
+        return
+
+        
