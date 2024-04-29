@@ -19,12 +19,23 @@ class Hash:
         s += ''.join(str(ai) for ai in a)
         return s
     
+    def int_to_string(self, g: list[int], x: list[int], a: list[int]) -> str:
+        s = ''.join(str(gi) for gi in g) # convierte cada elemento de x en un string y lo mete en s sin espacios.
+        s += ''.join(str(xi) for xi in x)
+        s += ''.join(str(ai) for ai in a)
+        return s
+    
     def sha3_512(self, msg: str) -> str:
         hash_object = hashlib.sha3_512(msg.encode()) # Calcular el hash SHA3-512
         return hash_object.hexdigest() # Devolver el hash en formato hexadecimal
     
     def hash_ZZp (self, q: int, x: list[int], a: list[int]):
         msg = self.int_to_string(x,a)
+        digest = self.sha3_512(msg)
+        return self.string_to_int(q, digest)
+    
+    def hash_ZZp (self, q: int, g: list[int], x: list[int], a: list[int]):
+        msg = self.int_to_string(g,x,a)
         digest = self.sha3_512(msg)
         return self.string_to_int(q, digest)
         
