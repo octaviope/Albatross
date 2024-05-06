@@ -1,0 +1,200 @@
+from Funciones import Funciones as fun
+from sympy.polys.domains import ZZ 
+from sympy.polys.galoistools import * 
+from LDEI import LDEI
+from DLEQ import DLEQ
+import random
+
+class PPVSS:
+    def __init__(self):
+        self.n = 0 # Número de nodos
+        self.t = 0 # Umbral
+        self.l = 0 # Número de secretos
+        self.r = 0 # Número de nodos que quieren reconstrucir el secreto
+        self.q = 0 # Orden del grupo Gq
+        self.p = 0 # 2q + 1
+        self.h = 0 # Generador del grupo Gq
+        self.pk = [] # Claves publicas
+        self.sighat = [] # Partes encryptadas
+        self.ld = LDEI() # Pruebas LDEI
+        self.reco_parties = 0 # Identificadoes de nodos reconstructores
+        self.sigtilde = [] # Parets del secreto desencriptadas y su indice
+        self.dl = [] # Pruebas DLEQ. Array de objetos DLEQ
+        self.S = [] # Secretos reconstruidos
+
+    def setup(self, sk: list, n: int, q: int, p: int, h: int):
+        # Creamos las claves secretas
+        for i in range(n):
+            sk.append(random.randint(1, q - 1))
+
+        # Creamos las claves públicas pk = h^sk
+        for i in range(n):
+            self.pk[i] = pow(h, sk[i], p)
+
+        # Ponemos los valores en el registro público (self)
+        self.n = n
+        self.h = h
+        self.q = q
+        self.p = p
+     
+
+    def distribution(self, l: int, t: int, alpha: list):
+        # Operaciones mod q
+        if(t < 1 or t > self.n):
+            return 0
+        
+        # Elegimos el polinomio P
+        deg = t + l
+        P = []
+        for i in range(random.randint(1, deg)):
+            P.append(random.randint(1, self.q-1))
+
+        # Cálculo de las partes de shamir
+        s = []
+        for i in range(-l+1, self.n):
+            s.append(gf_multi_eval(P, [i % self.q], self.q, ZZ)[0])
+
+        # Operaciones mod p
+        # Proceso para calcular partes encriptadas
+        for i  in range(self.n):
+            self.sighat[i] = pow(self.pk[i], s[i+l], self.p)
+
+        # Proceso para calcular la prueba LDEI
+        self.ld.probar(self.q, self.p, self.pk, alpha, deg, self.sighat, P)
+
+        self.l = l
+        self.t = t
+        # dist = True
+    
+    def lambdas(self, lambs: list, t: int):
+        # Operaciones mod q
+        lambs = [[0] * t for _ in range(self.l)]
+
+
+        for j in range(self.l):
+            for i in range(t):
+                num = 1
+                den = 1
+                for m in range(t):
+                    if(m != i):
+                        tmp = (-j - self.reco_parties[m]) % self.q
+                        num = (num*tmp) % self.q
+                        tmp = (self.reco_parties[i] - self.reco_parties[m]) % self.q
+                        den = (den * tmp) % self.q
+                    invden = 1/den
+                    mu = (num * invden) % self.q
+                    lambs[i][j] = mu
+
+
+    def reconstruction(self, r: int):
+        t = self.n - self.t
+        if r < t:
+            return
+        # Operaciones mod q
+        lambs = [] #Matriz
+        self.lambdas(lambs, t)
+
+        # Operaciones mod p
+        self.S = [0] * self.l
+        for j in range(self.l):
+            self.S[self.l-j-1] = 1
+            for i in range(t):
+                tmp = pow(self.sigtilde[i], lambs[i][j], self.p)
+                self.S[self.l-j-1] = (self.S[self.l-j-1] * tmp) % self.p
+
+        self.r = r
+        return
+
+
+    def pvss_test(self, n, size):
+     
+        # Parametros
+        k = 128
+        p, q = fun.findprime(k, size-k)
+        t = n/3
+        l = n-2*t
+        # Operaciones mod p
+        gen = fun.generator(p)
+        h = pow(gen, 2, p)
+
+        # Operaciones mod q
+        # Setup
+        sk = []
+        self.setup(sk, n, q, p, h) 
+
+        # Distribucion
+        alpha = []
+        for i in range(self.n):
+            alpha.append((i+1) % q)
+        salida = self.distribution(l, t, alpha) # Ver que devuelve distribution
+
+        # Verificacion
+        if(not self.ld.verificar(q, p, self.pk, alpha, t+l, self.sighat)):
+            print("La prueba LDEI no es correcta...")
+            return
+        
+        # Comparticion de las partes desencriptadas y prueba DLEQ
+        # Selección de nodos reconstructores
+
+        len = n
+        r = n-t
+        tab = []
+        for i in range(len):
+            tab.append(i)
+
+        invsk = []
+        for i in range(r): # t+l nodos
+            ind = random.randint(0, len-1)
+            v = tab[ind]
+            self.reco_parties[i] = v + 1
+            invsk.append(1/sk[v])
+            len -= 1
+            for j in range(ind, len - 1):
+                tab[j] = tab[j + 1]
+
+        # Operaciones mod p
+
+        # g y x son matrices de (n-t x 2)
+        g = [[0] * 2 for _ in range(r)]
+        x = [[0] * 2 for _ in range(r)]
+        for i in range(r):
+            id = self.reco_parties[i]
+            x[i].insert(0, h)
+            g[i].insert(1, self.sighat[id-1])
+            x[i].insert(1, pow(g[i][1], invsk[i], p))
+            self.sigtilde[i] = x[i][1]
+            g[i][0] = self.pk[id-1]
+            self.dl.append(DLEQ())
+            self.dl[i].probar(q,p,g[i],x[i],invsk[i])
+
+        for i in range(r):
+            if(not (self.dl[i].verificar(q, p, g, x))):
+                print("Por lo menos una prueba DLEQ es incorrecta...")
+                return
+        
+        # Reconstrucción
+        self.reconstruction(r,)
+
+        # Operaciones mod q
+        alphaverif = [0] * (r + l)
+        for j in range(l):
+            alphaverif[j] = j-l+1
+
+        for j in range(l, r+l):
+            alphaverif[j] = self.reco_parties[j-l]
+
+        # Operaciones mod p
+        xverif = [0] * (r + l)
+        for j in range(l):
+            xverif[j] = self.S[j]
+
+        for j in range(l, r+l):
+            xverif[j] = self.sigtilde[j-l]
+
+        if(not (localldei(q,p,alphaverif,t+l,xverif,r+l))):
+            print("La reconstrucción no es correcta...")
+            return    
+
+
+
+        
