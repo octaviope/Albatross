@@ -4,7 +4,6 @@ from sympy.polys.galoistools import *
 from Hash import Hash
 import random
 
-
 class DLEQ:
     def __init__(self):
         self._a = []
@@ -19,7 +18,7 @@ class DLEQ:
 
     
 
-    def probar(self, q: int, p: int, g: list[int], x: list[int], alpha: list[int]):
+    def probar(self, q: int, p: int, g: int, x: int, alpha: int):
         # Operaciones mod p
         m = len(g) 
         if(len(x) != m): 
@@ -35,22 +34,27 @@ class DLEQ:
     
             # Operaciones mod q
             hash = Hash()
-            self._e = hash.hash_ZZp(q, g, x, self._a)
+            self._e = hash.hash_ZZp(q, x, self._a, g)
+      
+            tmp = (alpha * self._e) % q 
+            self._z = (w - tmp) % q
+            if self._z < 0:
+                self._z += q
 
-            tmp = gf_mul(alpha, self._e, q, ZZ)
-            self._z = gf_sub(w, tmp, q, ZZ)
+            
+            
             
             
            
     def verificar(self, q: int, p: int, g: list[int], x: list[int]):
         # Operaciones mod p
-        m = len(self._a) 
+        m = len(self._a)
         if(len(x) != m or len(g) != m): 
             print("Verificacion fallida longitud incorrecta.")
             return False
         
         # Operaciones mod q
-        hash = Hash().hash_ZZp(q, g, x, self._a)
+        hash = Hash().hash_ZZp(q, x, self._a, g)
         if (self._e != hash):
             print("Verificacion fallida digest incorrecto.")
             return False
@@ -58,15 +62,14 @@ class DLEQ:
         # Operaciones mod p
         tmp1, tmp2, tmp3 = 0, 0, 0
         for i in range(m):
-            tmp2 = (pow(g[i], int(self._z), p))
-            tmp3 = (pow(x[i], int(self._e), p))
-            tmp1 = gf_mul([tmp2], [tmp3], p, ZZ)[0]
-            print("tmp1: ", tmp1)
-            print("tmp2: ", tmp2)
-            print("tmp3: ", tmp3)
-            print("self._a: ", self._a)
+            tmp2 = pow(g[i], self._z, p)
+            tmp3 = pow(x[i], self._e, p)
+            
+            tmp1 = (tmp2 * tmp3) % p
             if (self._a[i] != tmp1):
-                print("Verificacion fallida a_i incorrecto.")
+                print("Verificacion fallida a_i incorrecto.",i)
+                
+#
                 return False
         return True   
         

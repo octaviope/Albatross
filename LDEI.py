@@ -26,19 +26,21 @@ class LDEI:
             self._a = self._a[:0]
 
         else: #Creamos el vector a
-            R  = [ random.randint(0, q) for i in range(0, k) ]
+            R  = [ random.randint(1, q-1) for i in range(0, k+1) ]
             R_eval = gf_multi_eval(R, alpha, q, ZZ) 
             # Operaciones mod p
             for i in range(m):
                 self._a.append(pow(g[i], R_eval[i], p))
-    
+            
             # Operaciones mod q
 
             hash = Hash()
-            self._e = hash.hash_ZZp(q, x, self._a)
+            self._e = hash.hash_ZZp(q, x, self._a, None)
 
-            tmp = gf_mul([self._e], P, q, ZZ)
-            self._z = gf_add(tmp, R, q, ZZ)
+            
+            tmp = [(self._e * coef) % q for coef in P]
+            self._z = [(x + y)%q for x, y in zip(tmp, R)]
+            
             
             
            
@@ -59,19 +61,16 @@ class LDEI:
         if (self._e != hash):
             print("Verificacion fallida digest incorrecto.")
             return False
-        
+
         zi = gf_multi_eval(self._z, alpha, q, ZZ)
 
         # Operaciones mod p
         tmp1, tmp2, tmp3 = 0, 0, 0
+        
         for i in range(m):
             tmp2 = (pow(g[i], int(zi[i]), p))
             tmp3 = (pow(x[i], int(self._e), p))
             tmp1 = gf_mul([tmp3], [self._a[i]], p, ZZ)[0]
-            print("tmp1: ", tmp1)###########################################
-            print("tmp2: ", tmp2)
-            print("tmp3: ", tmp3)
-            print("self._a: ", self._a)
             if (tmp2 != tmp1):
                 print("Verificacion fallida a_i incorrecto.")
                 return False
@@ -79,31 +78,31 @@ class LDEI:
 
     def localldei(q: int, p: int, alpha: list, k: int, x: list ,m: int): #Creo que es un método estático.
         # Operaciones mod q
-        u = [0] * m
+        u = []
         for i in range(m):
             prod = 1
             for l in range(m):
                 if(l != i):
                     tmp = (alpha[i]-alpha[l]) % q
-                    prod = prod * tmp
-            u[i] = 1 / prod 
+                    prod = (prod * tmp) % q
+            u.append(pow(prod, -1, q))
 
         # Polinomio aleatorio
-        P  = [ random.randint(0, q) for i in range(0, m - k - 1) ]
+        P  = [random.randint(0, q) for i in range(0, m - k - 1)]
         
         # Calculo de v
-        v = [0] * m  
+        v = []
         for i in range(m):
-            tmp = gf_multi_eval(P, alpha, q, ZZ) 
-            v[i] = (u[i] * tmp) % q
+            tmp = gf_multi_eval(P, [alpha[i]], q, ZZ)[0]
+            v.append(((u[i] * tmp) % q))
 
         # Operaciones mod p
         # Verificación
         prod = 1
         for i in range(m):
             tmp = pow(x[i], v[i], p)
-            prod = (prod * tmp) % P
+            prod = (prod * tmp) % p
 
-        return
+        return prod == 1
         
         

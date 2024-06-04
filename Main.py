@@ -1,33 +1,29 @@
 from Funciones import Funciones
 from LDEI import LDEI
+from PPVSS import PPVSS
+
+
+##################################################################################################
+# Si hago que n y size se puedan seleccionar tengo que definir mínimos.
+# Optimizar la función findprimes con algoritmos de generación de primos más eficientes y paralelización
+#
+#
+##################################################################################################
 
 #Variables
+n = 700 # Número de participantes. Default n = 1024
+size = 1024 # Tamaño del número primo q. Default size = 1024
 
-n = 1024 # Numero de participantes
-q = 340282366920938463463374607431775848449 # Numero primo
-p = 680564733841876926926749214863551696899 # Numero primo
-g = [1,2,3,4] # Generadores 
-alpha = [1,2,3,4]
-k = 4 # Grado del polinomio por defecto 128 creo?
-x1 = [1,2,3,4]
-P = [1,2,3,4]
-
-'''
-f = Funciones()
-q, p = f.findprime(0, 0)
-print("Numero primo q: ", q)
-print("Numero primo p: ", p)
-'''
-
-x = LDEI()
-z = x.probar(q,p, g, alpha, k, x1, P)
-#print("Salida LDEI: ", z)
-print(x.verificar(q,p, g, alpha, k, x1))
+ppvss = PPVSS()
+ppvss.pvss_test(n, size)
 
 
-
-#x.probar(q,p,g,alpha,k,x1,P)
-
-    #Usamos la funcion print de la clase LEDI
-#x.print()
+##################################################################################################
+# q = 179769313486231590772930519078902473361797697894230657273430081157732675805500963132708477322407536021120113879871393357658789768814416622492847430639474124377767893424865485276302219601246094119453082952085005768838150682342462881473913110540827237163350510684586385388643390959266778519315941857485555499009
+# p = 359538626972463181545861038157804946723595395788461314546860162315465351611001926265416954644815072042240227759742786715317579537628833244985694861278948248755535786849730970552604439202492188238906165904170011537676301364684925762947826221081654474326701021369172770777286781918533557038631883714971110998019
+# 
+# x = LDEI()
+# print("Salida LDEI de la función probar: ", x.probar(q,p, g, alpha, k, x1, P))
+# print("Salida LDEI de la función verificar: ", x.verificar(q,p, g, alpha, k, x1))
+##################################################################################################
 
