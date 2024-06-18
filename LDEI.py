@@ -26,7 +26,7 @@ class LDEI:
             self._a = self._a[:0]
 
         else: #Creamos el vector a
-            R  = [ random.randint(1, q-1) for i in range(0, k+1) ]
+            R  = [ random.randint(0, q-1) for i in range(0, k+1) ]
             R_eval = gf_multi_eval(R, alpha, q, ZZ) 
             # Operaciones mod p
             for i in range(m):

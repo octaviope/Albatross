@@ -1,3 +1,4 @@
+import requests
 from Funciones import Funciones
 from sympy.polys.domains import ZZ 
 from sympy.polys.galoistools import * 
@@ -24,21 +25,7 @@ class PPVSS:
         self.dl = [] # Pruebas DLEQ. Array de objetos DLEQ
         self.S = [] # Secretos reconstruidos
 
-    def setup(self, sk: list, n: int, q: int, p: int, h: int):
-        # Creamos las claves secretas
-        for i in range(n):
-            sk.append(random.randint(0, q - 1))
-
-        # Creamos las claves públicas pk = h^sk
-        self.pk = [0] * n
-        for i in range(n):
-            self.pk[i] = pow(h, sk[i], p)
-
-        # Ponemos los valores en el registro público (self)
-        self.n = n
-        self.h = h
-        self.q = q
-        self.p = p
+   
      
 
     def distribution(self, l: int, t: int, alpha: list):
@@ -49,7 +36,7 @@ class PPVSS:
         # Elegimos el polinomio P
         deg = t + l
         P = []
-        for _ in range(deg+1):
+        for _ in range(deg):
             P.append(random.randint(0, self.q-1))
 
         # Cálculo de las partes de shamir
@@ -66,8 +53,6 @@ class PPVSS:
         # Proceso para calcular la prueba LDEI
         self.ld.probar(self.q, self.p, self.pk, alpha, deg, self.sighat, P)
 
-        self.l = l
-        self.t = t
 
 
     def lambdas(self, lambs: list, t: int):
@@ -108,50 +93,47 @@ class PPVSS:
 
         self.r = r
         return
+    
+    def setup_ledger(self, ledger):
+        self.n = ledger.get_n() 
+        self.t = ledger.get_t()
+        self.l = ledger.get_l()
+        self.r = ledger.get_r()
+        self.q = ledger.get_q()
+        self.p = ledger.get_p()
+        self.h = ledger.get_h()
+        self.pk = ledger.get_pk()
+        return
+    
+    def get_invsk(self, other_node_url):
+        # Método para solicitar invsk 'http://localhost:5000/node/<int:node_id>/get_id'
+        response = requests.get(other_node_url + '/get_invsk')
+        if response.status_code == 200:
+            return response.json()['invsk']
+        else:
+            return None
+        
 
-
-    def pvss_test(self, n, size):
-        # Parametros
-        k = 128
-        q, p = Funciones.findprime(k, size-k)
-      
-        t = round(n/3)
-        l = n-2*t
-        # Operaciones mod p
-        gen = Funciones.generator(p)
-        h = pow(gen, 2, p)
-
-        # Operaciones mod q
-        # Setup
-        sk = []
-
-        inicio_tiempo = time.time()
-        self.setup(sk, n, q, p, h)
-        tiempo_transcurrido = time.time() - inicio_tiempo
-        setup_time = tiempo_transcurrido
-         
+    def pvss_test(self, ledger):
+        #Setup
+        self.setup_ledger(ledger)
 
         # Distribucion
         alpha = []
         for i in range(self.n):
-            alpha.append((i+1) % q)
-        
-        inicio_tiempo = time.time()
-        self.distribution(l, t, alpha)
-        tiempo_transcurrido = time.time() - inicio_tiempo
-        dist_time = tiempo_transcurrido
+            alpha.append((i+1) % self.q)
+        self.distribution(self.l, self.t, alpha)
 
         # Verificacion
-        
-        if(not self.ld.verificar(q, p, self.pk, alpha, t+l, self.sighat)):
+        if(not self.ld.verificar(self.q, self.p, self.pk, alpha, self.t+self.l, self.sighat)):
             print("La prueba LDEI no es correcta...")
             return
         
         
         # Comparticion de las partes desencriptadas y prueba DLEQ
         # Selección de nodos reconstructores
-        leng = n
-        r = n-t
+        leng = self.n
+        r = self.n-self.t
         tab = []
         for i in range(leng):
             tab.append(i)
@@ -161,7 +143,9 @@ class PPVSS:
             ind = random.randint(0, leng-1)
             v = tab[ind]
             self.reco_parties.append(v + 1)
-            invsk.append(pow(sk[v], -1, q))
+            ############################################
+            invsk.append(self.get_invsk(f'http://localhost:5000/node/{v}'))
+            ############################################
             leng -= 1
             for j in range(ind, leng):
                 tab[j] = tab[j + 1]
@@ -173,11 +157,11 @@ class PPVSS:
         x = [[] for _ in range(r)]
         for i in range(r):
             id = self.reco_parties[i]
-            x[i].append(h)
+            x[i].append(self.h)
             g[i].append(self.sighat[id-1])
             
             inicio_tiempo = time.perf_counter()
-            x[i].append(pow(g[i][0], invsk[i], p))
+            x[i].append(pow(g[i][0], invsk[i], self.p))
             decrypt_time = time.perf_counter() - inicio_tiempo
 
             self.sigtilde.append(x[i][1])
@@ -185,47 +169,38 @@ class PPVSS:
             
             self.dl.append(DLEQ())
             
-            self.dl[i].probar(q,p,g[i],x[i],invsk[i])
+            self.dl[i].probar(self.q,self.p,g[i],x[i],invsk[i])
         
 
         for i in range(r):
-            if(not (self.dl[i].verificar(q, p, g[i], x[i]))):
+            if(not (self.dl[i].verificar(self.q, self.p, g[i], x[i]))):
                 print("Por lo menos una prueba DLEQ es incorrecta...", i)
                 
                 return
         
         # Reconstrucción
-        reco_time = timeit.timeit(lambda: self.reconstruction(r), number=1) 
-
+        self.reconstruction(r)
         # Operaciones mod q
         alphaverif = []
-        for j in range(l):
-            alphaverif.append(j-l+1)
+        for j in range(self.l):
+            alphaverif.append(j-self.l+1)
 
-        for j in range(l, r+l):
-            alphaverif.append(self.reco_parties[j-l])
+        for j in range(self.l, r+self.l):
+            alphaverif.append(self.reco_parties[j-self.l])
 
         # Operaciones mod p
         xverif = []
-        for j in range(l):
+        for j in range(self.l):
             xverif.append(self.S[j])
 
-        for j in range(l, r+l):
-            xverif.append(self.sigtilde[j-l])
+        for j in range(self.l, r+self.l):
+            xverif.append(self.sigtilde[j-self.l])
 
-        if(not (LDEI.localldei(q,p,alphaverif,t+l,xverif,r+l))):
+        if(not (LDEI.localldei(self.q,self.p,alphaverif,self.t+self.l,xverif,r+self.l))):
             print("La reconstrucción no es correcta...")
             return
         
-        all_time = setup_time + dist_time + decrypt_time + reco_time
-
-        print("\n\ntimes for q of " ,size , " bits and " , n , " participants in finite field:\n\n")
-        print("time for setting up: " , setup_time , "s")
-        print("time for distributing: " , dist_time , "s")
-        print("time for sharing decrypted shares with dleq: " , decrypt_time , "s")
-        print("time for reconstructing the secrets: " , reco_time , "s")
-
-        print("\nglobal time: " , all_time , "s\n\n")
+        return "Sol: ", self.S
         
 
 
