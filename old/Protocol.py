@@ -1,9 +1,9 @@
 import requests
-from Funciones import Funciones
+from protocol.Funciones import Funciones
 from sympy.polys.domains import ZZ 
 from sympy.polys.galoistools import * 
-from LDEI import LDEI
-from DLEQ import DLEQ
+from .verification.LDEI import LDEI
+from .verification.DLEQ import DLEQ
 import random
 import timeit
 import time

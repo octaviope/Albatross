@@ -1,8 +1,8 @@
 from Funciones import Funciones
 from sympy.polys.domains import ZZ 
 from sympy.polys.galoistools import * 
-from LDEI import LDEI
-from DLEQ import DLEQ
+from verification.LDEI import LDEI
+from verification.DLEQ import DLEQ
 import random
 import timeit
 import time
@@ -23,6 +23,7 @@ class PPVSS:
         self.sigtilde = [] # Parets del secreto desencriptadas y su indice
         self.dl = [] # Pruebas DLEQ. Array de objetos DLEQ
         self.S = [] # Secretos reconstruidos
+        self.sec = []
 
     def setup(self, sk: list, n: int, q: int, p: int, h: int):
         # Creamos las claves secretas
@@ -47,24 +48,24 @@ class PPVSS:
             return 0
         
         # Elegimos el polinomio P
-        deg = t + l
-        P = []
+        deg = t + l # Grado máximo del polinomio
+        P = [] # Polinomio
         for _ in range(deg+1):
             P.append(random.randint(0, self.q-1))
 
         # Cálculo de las partes de shamir
-        s = []
+        s = [] # Secretos [-l+1, ..., 0, ...]y fragmentos de shamir [..., 1, ..., n]
         for i in range(-l+1, self.n+1):
             s.append(gf_multi_eval(P, [i % self.q], self.q, ZZ)[0])
-
+        self.sec = s
         # Operaciones mod p
         # Proceso para calcular partes encriptadas
-        self.sighat = [] 
+        self.sighat = [] # Framgentos de shamir encriptados
         for i  in range(self.n):
             self.sighat.append(pow(self.pk[i], s[i+l], self.p))
         
         # Proceso para calcular la prueba LDEI
-        self.ld.probar(self.q, self.p, self.pk, alpha, deg, self.sighat, P)
+        self.ld.probar(self.q, self.p, self.pk, alpha, deg, self.sighat, P) # Prueba LDEI
 
         self.l = l
         self.t = t
@@ -72,7 +73,6 @@ class PPVSS:
 
     def lambdas(self, lambs: list, t: int):
         # Operaciones mod q
-        
         for j in range(self.l):
             for i in range(t):
                 num = 1
@@ -86,6 +86,7 @@ class PPVSS:
                 invden =  pow(den, -1, self.q)
                 mu = (num * invden) % self.q
                 lambs[i][j] = mu
+
 
 
     def reconstruction(self, r: int):
@@ -110,20 +111,23 @@ class PPVSS:
         return
 
 
-    def pvss_test(self, n, size):
+    def pvss_test(self, n, size): 
         # Parametros
         k = 128
         q, p = Funciones.findprime(k, size-k)
-      
-        t = round(n/3)
-        l = n-2*t
+        t = round(n/3) # Tolerancia
+        ############################################################################
+        # Estudiar por que se bugea al usar distintos valores de los participantes.#
+        ############################################################################
+        l = n-2*t # Número de secretos
+
         # Operaciones mod p
         gen = Funciones.generator(p)
         h = pow(gen, 2, p)
 
         # Operaciones mod q
         # Setup
-        sk = []
+        sk = [] # claves secretas
 
         inicio_tiempo = time.time()
         self.setup(sk, n, q, p, h)
@@ -132,7 +136,7 @@ class PPVSS:
          
 
         # Distribucion
-        alpha = []
+        alpha = []  # ?????????? Se usa en LDEI pero no se para que
         for i in range(self.n):
             alpha.append((i+1) % q)
         
@@ -149,10 +153,10 @@ class PPVSS:
         
         
         # Comparticion de las partes desencriptadas y prueba DLEQ
-        # Selección de nodos reconstructores
-        leng = n
-        r = n-t
-        tab = []
+        # Seleccionamos los nodos que van a hacer el reveal. Simulación del reveal.
+        leng = n # Número de participantes
+        r = n-t # Número mínimo para la reconstrucción
+        tab = [] # ???????
         for i in range(leng):
             tab.append(i)
 
@@ -168,6 +172,7 @@ class PPVSS:
 
         # Operaciones mod p
 
+        # Reveal
         # g y x son matrices de (n-t x 2)
         g = [[] for _ in range(r)]
         x = [[] for _ in range(r)]
@@ -197,6 +202,11 @@ class PPVSS:
         # Reconstrucción
         reco_time = timeit.timeit(lambda: self.reconstruction(r), number=1) 
 
+        print(self.S[0])
+        print(len(self.sec))
+        print(self.sec[0])
+        print(self.sec[-134])
+
         # Operaciones mod q
         alphaverif = []
         for j in range(l):
@@ -213,6 +223,7 @@ class PPVSS:
         for j in range(l, r+l):
             xverif.append(self.sigtilde[j-l])
 
+
         if(not (LDEI.localldei(q,p,alphaverif,t+l,xverif,r+l))):
             print("La reconstrucción no es correcta...")
             return
@@ -227,6 +238,9 @@ class PPVSS:
 
         print("\nglobal time: " , all_time , "s\n\n")
         
+        ########################################################################################
+        # Estudiar si lo resultados tiene el tamaño que se selecciona con el parametro de size.#
+        ########################################################################################
 
 
 

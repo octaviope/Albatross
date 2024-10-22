@@ -1,7 +1,5 @@
-from sympy import GF 
-from sympy.polys.domains import ZZ 
 from sympy.polys.galoistools import * 
-from Hash import Hash
+from .Hash import Hash
 import random
 
 class DLEQ:
@@ -23,6 +21,7 @@ class DLEQ:
         m = len(g) 
         if(len(x) != m): 
             self._a = self._a[:0]
+            print("Tamaños de g y x incorrectos.")
 
         else: 
             # Operaciones mod q
@@ -60,7 +59,7 @@ class DLEQ:
             return False
         
         # Operaciones mod p
-        tmp1, tmp2, tmp3 = 0, 0, 0
+        tmp1, tmp2, tmp3 = 0, 0, 0 
         for i in range(m):
             tmp2 = pow(g[i], self._z, p)
             tmp3 = pow(x[i], self._e, p)
@@ -69,7 +68,7 @@ class DLEQ:
             if (self._a[i] != tmp1):
                 print("Verificacion fallida a_i incorrecto.",i)
                 
-#
+
                 return False
         return True   
         
