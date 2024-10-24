@@ -76,21 +76,16 @@ class LDEI:
                 return False
         return True
 
-    def localldei(q: int, p: int, alph: list, k: int, x: list ,m: int): #Creo que es un método estático.
+    def localldei(q: int, p: int, alpha: list, k: int, x: list ,m: int): #Creo que es un método estático.
         # Operaciones mod q
-        qp = q
-        alpha = alph
         u = []
         for i in range(m):
             prod = 1
-
             for l in range(m):
                 if(l != i):
-                    tmp = ((alpha[i]-alpha[l]) % qp)
-                    prod = ((prod * tmp) % qp)
-
-            time.sleep(5)
-            u.append(pow(prod, -1, qp))
+                    tmp = (alpha[i]-alpha[l]) % q
+                    prod = (prod * tmp) % q
+            u.append(pow(prod, -1, q))
 
         # Polinomio aleatorio
         P  = [random.randint(0, q) for i in range(0, m - k - 1)]
@@ -99,7 +94,7 @@ class LDEI:
         v = []
         for i in range(m):
             tmp = gf_multi_eval(P, [alpha[i]], q, ZZ)[0]
-            v.append(((u[i] * tmp) % qp))
+            v.append(((u[i] * tmp) % q))
 
         # Operaciones mod p
         # Verificación

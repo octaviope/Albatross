@@ -86,15 +86,22 @@ class PPVSS:
                 tmp = pow(sigtilde[i], lambs[i][j], p)
                 Sec[l - j - 1] = (Sec[l - j - 1] * tmp) % p
 
-        print("Reco_parties: ", reco_parties, "\nSecreto reconstruido: ", Sec)
 
-        # Operaciones mod q y mod p para la verificación LDEI local
-        alphaverif = [j - l + 1 for j in range(l)]
-        alphaverif += [reco_parties[j - l] for j in range(l, r + l)]
+       # Operaciones mod q
+        alphaverif = []
+        for j in range(l):
+            alphaverif.append(j-l+1)
 
- 
-        xverif = Sec[:]  # Copia del secreto reconstruido
-        xverif += [sigtilde[reco_parties[j - l]-1] for j in range(l, r + l)]
+        for j in range(l, r+l):
+            alphaverif.append(reco_parties[j-l])
+
+        # Operaciones mod p
+        xverif = []
+        for j in range(l):
+            xverif.append(Sec[j])
+
+        for j in range(l, r+l):
+            xverif.append(sigtilde[j-l])
 
         # Verificación LDEI local
         if not LDEI.localldei(q, p, alphaverif, self.ledger.t + l, xverif, r + l):

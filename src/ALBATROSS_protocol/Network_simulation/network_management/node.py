@@ -129,16 +129,13 @@ class Node:
     def reconstruction(self, failed_node, reco_parties):
         
         ledger: Ledger = self.ledgers[failed_node]
-        
-
-        secret, frag = self.buscar_nodo_por_id(failed_node)
-        for i, e in enumerate(secret):
-            secret[i] = pow(ledger.h, e, ledger.p)
-        print("Reco_parties: ", reco_parties, "\nSecreto convertido: ", secret)
+        for i, e in enumerate(reco_parties):
+            reco_parties[i] = e+1
 
         sec = PPVSS(ledger).reconstruct(reco_parties)
-
-        return sec
+        lista_sec = [int(x) for x in sec]
+        return lista_sec
+    
     
     def buscar_nodo_por_id(self, id_buscado, visitados=None):
         if visitados is None:

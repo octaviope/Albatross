@@ -70,12 +70,12 @@ class NodeController:
                 # Pasa node_id y reco_parties a la función de reconstrucción del nodo
                 result = node.reconstruction(node_id, reco_parties)
                 
-                if result is False:
-                    return jsonify({"status": "failure", "node": node_id}), 500
+                if result == False:
+                    return {"status": "failure", "node": node_id}, 500
                 else:
-                    return jsonify({"result": result}), 200
+                    return {"result": result}, 200  
             else:
-                return jsonify({"status": "error", "message": f"Nodo {node_id} no encontrado"}), 404
+                return f"Nodo {node_id} no encontrado", 404
 
 
 

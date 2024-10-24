@@ -1,5 +1,6 @@
 import random
 import threading
+import numpy as np
 import requests
 
 from .PPVSS.Funciones import Funciones
@@ -247,9 +248,46 @@ class Albatross:
         ##### Cálculo final del output #####
         ####################################
         # Crear matriz M con w.
+        w = Funciones.rootunity(len(self.T[0]), self.network.get_q())
+        t = self.num_participants // 3
+        l = self.num_participants - 2 * t
+        matriz_vander = self.crear_matriz_vandermonde(w, l, t)
+        print("Tamaño de la matriz de Vandermonde:", matriz_vander.shape)
+
+        matriz_T = np.array(self.T)
+        print("Tamaño de la matriz de T:", matriz_T.shape)
+
+        # Transponer la matriz T
+        matriz_T_transpuesta = matriz_T.T
+        print("Tamaño de la matriz T transpuesta:", matriz_T_transpuesta.shape)
+
         # Sacar output multiplicando M * T en el exponente.
-        
+        aleatoriedad_final = self.multiplicar_matrices(matriz_vander, matriz_T_transpuesta)
+        print("Aleatoriedad final:", aleatoriedad_final)
+
         print("Reconstrucción de secretos completada.")
 
+
+    def crear_matriz_vandermonde(self, omega, l, t):
+        """
+        Crea una matriz de Vandermonde de tamaño (l, t + l).
+
+        :param omega: Valor base (número).
+        :param l: Número de filas de la matriz de Vandermonde.
+        :param t: Número que se suma a l para definir el número de columnas.
+        :return: Matriz de Vandermonde de tamaño (l, t + l).
+        """
+        n_columnas = t + l
+        return np.array([[omega**j for j in range(n_columnas)] for i in range(l)])
+    
+    def multiplicar_matrices(self, matriz_a, matriz_b):
+        """
+        Multiplica dos matrices del mismo tamaño.
+
+        :param matriz_a: Primera matriz.
+        :param matriz_b: Segunda matriz.
+        :return: Resultado de la multiplicación.
+        """
+        return np.multiply(matriz_a, matriz_b) 
 
 
