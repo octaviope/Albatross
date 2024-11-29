@@ -4,51 +4,52 @@ import threading
 import time
 import signal
 
-from ALBATROSS_protocol.Network_simulation.network_management.network import Network
-from ALBATROSS_protocol.Network_simulation.network_communication.flask_server import FlaskServer
-from ALBATROSS_protocol.albatross import Albatross
+from DistributedNetwork.NetworkManagement.network import Network
+from DistributedNetwork.NetworkCommunication.flask_server import FlaskServer
+from ALBATROSSProtocol.ALBATROSS import ALBATROSS
 
-# Clase que redirige la salida tanto a archivo como a la terminal
+# Class that redirects output to both file and terminal
 class Logger:
     def __init__(self, filename):
         self.terminal = sys.stdout
         self.log = open(filename, "w")
 
     def write(self, message):
-        self.terminal.write(message)  # Imprimir en la terminal
-        self.log.write(message)       # Guardar en el archivo
+        self.terminal.write(message)  # Print to terminal
+        self.log.write(message)       # Save to file
 
     def flush(self):
         pass
 
 
 def signal_handler():
-    print("Cerrando el servidor...")
+    print("Shutting down the server...")
     sys.exit(0)
 
-# Comandos por terminal
+# Terminal commands
 def manage_terminal_input():
-    # Capturar la señal Ctrl+C usando signal_handler
+    # Capture Ctrl+C signal using signal_handler
     signal.signal(signal.SIGINT, signal_handler)
 
-    # Captura el número de participantes por terminal
-    parser = argparse.ArgumentParser(description="Procesa dos números de entrada.")
-    parser.add_argument('--n', type=int, default=512, help='Número de participantes.')
+    # Capture the number of participants from terminal input
+    parser = argparse.ArgumentParser(description="Process two input numbers.")
+    parser.add_argument('--n', type=int, default=512, help='Number of participants.')
     args = parser.parse_args()
     if args.n < 1:
-        print(f"Error: Número de participantes ({args.n}) es demasiado pequeño, se requieren al menos 100 participantes.")
+        print(f"Error: The number of participants ({args.n}) is too small, at least 100 participants are required.")
         sys.exit(1)
     return args.n
 
-# Crea la red
+# Create the network
 def create_network(num_participants):
     network = Network(num_participants)
     network.create_nodes()
     network.assign_neighbors()
     network.pk_to_ledger()
+    # network.visualize_network()
     return network
-
-# Inicia el servidor
+ 
+# Start the Flask server
 def start_flask_server(network):
     flask_server = FlaskServer(network)
     def run_server():
@@ -57,12 +58,12 @@ def start_flask_server(network):
     server_thread = threading.Thread(target=run_server)
     server_thread.daemon = True
     server_thread.start()
-    time.sleep(2)  # Dar tiempo al servidor para arrancar
+    time.sleep(2)  # Give time for the server to start
     return server_thread
 
-# Función principal
+# Main function
 if __name__ == '__main__':
-    # Redirigir salida estándar y errores tanto a un archivo log.txt como a la terminal
+    # Redirect standard output and errors to both log.txt and terminal
     sys.stdout = Logger("log.txt")
     sys.stderr = sys.stdout
 
@@ -71,14 +72,23 @@ if __name__ == '__main__':
 
     start_flask_server(network)
 
-    protocol = Albatross(network, num_participants)
-    protocol.execute_commit_phase()
-    protocol.execute_reveal_phase()
-    protocol.handle_output_phase()
+    start_time = time.time()
+    protocol = ALBATROSS(network, num_participants)
+    commit_time = protocol.execute_commit_phase() 
+    reveal_time = protocol.execute_reveal_phase()
+    output_time = protocol.handle_output_phase()
+    end_time = time.time()
+    execution_time = end_time - start_time
 
-    # Mantener el hilo principal activo
+    print("########################### EXECUTION TIMES ###########################")
+    print(f"Total: {execution_time} seconds")
+    print(f"Commit: {commit_time} seconds")
+    print(f"Reveal: {reveal_time} seconds")
+    print(f"Output: {output_time} seconds")
+    exit(0)
+    # Keep the main thread active
     try:
         while True:
             time.sleep(1)
     except KeyboardInterrupt:
-        print("Servidor detenido.")
+        print("Server stopped.")
