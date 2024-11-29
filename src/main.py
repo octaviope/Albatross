@@ -33,11 +33,9 @@ def manage_terminal_input():
 
     # Capture the number of participants from terminal input
     parser = argparse.ArgumentParser(description="Process two input numbers.")
-    parser.add_argument('--n', type=int, default=512, help='Number of participants.')
+    parser.add_argument('--n', type=int, default=24, help='Number of participants.')
     args = parser.parse_args()
-    if args.n < 1:
-        print(f"Error: The number of participants ({args.n}) is too small, at least 100 participants are required.")
-        sys.exit(1)
+    print(f"Number of participants: {args.n}")
     return args.n
 
 # Create the network
