@@ -12,19 +12,16 @@ class LDEI:
     
 
     def probar(self, q: int, p: int, g: list[int], alpha: list[int], k: int, x: list[int], P: list[int]):
-        # Operaciones mod q
         m = len(g) 
         if(len(alpha) != m or len(x) != m or k > m): 
             self.__a = self.__a[:0]
 
-        else: #Creamos el vector a
+        else: 
             R  = [ random.randint(0, q-1) for i in range(0, k+1) ]
             R_eval = gf_multi_eval(R, alpha, q, ZZ) 
-            # Operaciones mod p
             for i in range(m):
                 self.__a.append(pow(g[i], R_eval[i], p))
             
-            # Operaciones mod q
 
             hash = Hash()
             self.__e = hash.hash_ZZp(q, x, self.__a, None)
@@ -48,7 +45,6 @@ class LDEI:
             print("Verificacion fallida grado de z incorrecto.") 
             return False
         
-         # Operaciones mod q
         hash = Hash().hash_ZZp(q, x, self.__a)
         if (self.__e != hash):
             print("Verificacion fallida digest incorrecto.")
@@ -56,7 +52,6 @@ class LDEI:
 
         zi = gf_multi_eval(self.__z, alpha, q, ZZ)
 
-        # Operaciones mod p
         tmp1, tmp2, tmp3 = 0, 0, 0
         
         for i in range(m):
@@ -68,8 +63,7 @@ class LDEI:
                 return False
         return True
 
-    def localldei(q: int, p: int, alpha: list, k: int, x: list ,m: int): #Creo que es un método estático.
-        # Operaciones mod q
+    def localldei(q: int, p: int, alpha: list, k: int, x: list ,m: int): 
         u = []
         for i in range(m):
             prod = 1
@@ -79,17 +73,13 @@ class LDEI:
                     prod = (prod * tmp) % q
             u.append(pow(prod, -1, q))
 
-        # Polinomio aleatorio
         P  = [random.randint(0, q) for i in range(0, m - k - 1)]
         
-        # Calculo de v
         v = []
         for i in range(m):
             tmp = gf_multi_eval(P, [alpha[i]], q, ZZ)[0]
             v.append(((u[i] * tmp) % q))
 
-        # Operaciones mod p
-        # Verificación
         prod = 1
         for i in range(m):
             tmp = pow(x[i], v[i], p)

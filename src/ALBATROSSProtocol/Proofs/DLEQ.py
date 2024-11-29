@@ -10,21 +10,17 @@ class DLEQ:
 
 
     def probar(self, q: int, p: int, g: int, x: int, alpha: int):
-        # Operaciones mod p
         m = len(g) 
         if(len(x) != m): 
             self.__a = self.__a[:0]
             print("Tamaños de g y x incorrectos.")
 
         else: 
-            # Operaciones mod q
             w = random.randint(0, q-1)
 
-            # Operaciones mod p
             for i in range(m):
                 self.__a.append(pow(g[i], w, p))
     
-            # Operaciones mod q
             hash = Hash()
             self.__e = hash.hash_ZZp(q, x, self.__a, g)
       
@@ -39,19 +35,16 @@ class DLEQ:
             
            
     def verificar(self, q: int, p: int, g: list[int], x: list[int]):
-        # Operaciones mod p
         m = len(self.__a)
         if(len(x) != m or len(g) != m): 
             print("Verificacion fallida longitud incorrecta.")
             return False
         
-        # Operaciones mod q
         hash = Hash().hash_ZZp(q, x, self.__a, g)
         if (self.__e != hash):
             print("Verificacion fallida digest incorrecto.")
             return False
         
-        # Operaciones mod p
         tmp1, tmp2, tmp3 = 0, 0, 0 
         for i in range(m):
             tmp2 = pow(g[i], self.__z, p)
