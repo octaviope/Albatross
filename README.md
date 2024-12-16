@@ -17,3 +17,11 @@ Puedes instalar las dependencias necesarias ejecutando:
 
 ```bash
 pip install -r requirements.txt
+```
+
+Puedes instalar las dependencias necesarias ejecutando:
+
+```bash
+python .\src\main.py --n [número de participantes]
+--n           Establece el número de participantes n en el argumento, sin esta opción n = 24
+```
