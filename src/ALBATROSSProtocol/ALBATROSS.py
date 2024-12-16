@@ -155,6 +155,8 @@ class ALBATROSS:
 
         aleatoriedad_final = self.__multiplicar_matrices(matriz_vander, matriz_T_transpuesta)
         print("Secret reconstruction completed.")
+        with open('aleatoriedad_final.txt', 'w') as archivo:
+            archivo.write(str(aleatoriedad_final))
         return
 
     def __execute_recovery_phase(self):
@@ -229,6 +231,12 @@ class ALBATROSS:
 
         # Calculate output by multiplying M * T in the exponent.
         aleatoriedad_final = self.__multiplicar_matrices(matriz_vander, matriz_T_transpuesta)
+        aleatoriedad_final = self.__multiplicar_matrices(matriz_vander, matriz_T_transpuesta)
+
+        # Guardar el contenido de aleatoriedad_final en un archivo .txt
+        with open('aleatoriedad_final.txt', 'w') as archivo:
+            archivo.write(str(aleatoriedad_final))
+
         print("Secret reconstruction completed.")
 
     def __crear_matriz_vandermonde(self, omega, l, t):
