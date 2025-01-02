@@ -65,8 +65,4 @@ class Ledger:
     def get_dl(self):
         return self.dl
 
-
-        self.ld.probar(q, p, pk, self.alpha, deg, self.encrypted_fragments, P)
-
-
  
