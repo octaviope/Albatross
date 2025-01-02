@@ -6,7 +6,7 @@ class DLEQ:
     def __init__(self):
         self.__a = []
         self.__e = 0 
-        self.__z = 0
+        self.__z = 0 
 
 
     def probar(self, q: int, p: int, g: int, x: int, alpha: int):

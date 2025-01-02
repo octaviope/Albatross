@@ -35,6 +35,8 @@ def manage_terminal_input():
     parser = argparse.ArgumentParser(description="Process two input numbers.")
     parser.add_argument('--n', type=int, default=24, help='Number of participants.')
     args = parser.parse_args()
+    if args.n < 10:
+        args.n = 24
     print(f"Number of participants: {args.n}")
     return args.n
 

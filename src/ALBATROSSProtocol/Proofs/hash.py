@@ -1,6 +1,6 @@
 import hashlib
  
-class Hash:
+class Hash: 
     
     def __string_to_int(self, q: int, input: str) -> int:
         output = 0

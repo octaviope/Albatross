@@ -1,8 +1,9 @@
 import random
-import threading
+import threading 
 import time
 import numpy as np
 import requests
+import sys
 
 from .PPVSSProtocol.utils import Utils
 
@@ -12,7 +13,7 @@ class ALBATROSS:
         """Initializes ALBATROSS protocol with given network and number of participants."""
         self.__network = network
         self.__num_participants = num_participants
-        self.__t = round(num_participants / 3)
+        self.__t = num_participants // 3
         self.__successful_commit_ids = set()
         self.__successful_reveal_ids = set()
         self.__successful_recovery_ids = set()
@@ -51,6 +52,7 @@ class ALBATROSS:
                 decoded_response = json_response.get('result', [])
                 numbers = [int(x) for x in decoded_response]
                 self.__T.append(numbers)
+                print("Number of secrets post-add:", len(self.__T))
                 print(f"Randomness extraction successful on node {node_id}")
             else:
                 print(f"Output request failed on node {node_id}: {response.status_code}")
@@ -76,7 +78,15 @@ class ALBATROSS:
             reco_part = ','.join(map(str, reco_parties))
             response = requests.get(f"http://localhost:5000/node/{reco_id}/reconstruction/{node_id}?reco_parties={reco_part}")
             if response.status_code == 200:
-                # Access the content of the response and process if necessary
+                
+                json_response = response.json()
+                decoded_response = json_response.get('result', [])
+                numbers = [int(x) for x in decoded_response]
+                self.__T.append(numbers)
+                print("Number of secrets post-add:", len(self.__T))
+
+
+
                 print(f"Reconstruction successful for node {node_id}")
             else:
                 print(f"Reconstruction failed for node {node_id}: {response.status_code}")
@@ -153,10 +163,11 @@ class ALBATROSS:
         matriz_T_transpuesta = matriz_T.T
         print("Transposed T matrix size:", matriz_T_transpuesta.shape)
 
+        sys.set_int_max_str_digits(10_000_000)
         aleatoriedad_final = self.__multiplicar_matrices(matriz_vander, matriz_T_transpuesta)
         print("Secret reconstruction completed.")
         with open('aleatoriedad_final.txt', 'w') as archivo:
-            archivo.write(str(aleatoriedad_final))
+            archivo.write(str(aleatoriedad_final))  
         return
 
     def __execute_recovery_phase(self):
@@ -191,6 +202,7 @@ class ALBATROSS:
 
         # Convert the matrix to h^s elements
         print("Number of secrets:", len(self.__T))
+
         for lista in self.__T:
             for i in range(len(lista)):
                 lista[i] = pow(self.__network.h, lista[i], self.__network.p)

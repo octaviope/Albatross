@@ -6,7 +6,7 @@ class Utils:
         """Finds two prime numbers q and p based on the input parameters k and l."""
         n = 2 ** k
         s = (k % 2) - (l % 2)
-        tmp = 2 ** l
+        tmp = 2 ** l 
         q = (tmp + s) * n + 1
         p = 2 * q + 1
         limite = 10 ** 8

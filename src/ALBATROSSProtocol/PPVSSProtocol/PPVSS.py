@@ -1,4 +1,5 @@
 import random
+from time import sleep
 from sympy.polys.domains import ZZ  
 from sympy.polys.galoistools import gf_multi_eval
 from ..Proofs.LDEI import LDEI
@@ -16,7 +17,7 @@ class PPVSS:
         p = self.__ledger.get_p()
         n = self.__ledger.get_n()
         l = self.__ledger.get_l()
-        pk = self.__ledger.get_pk()
+        pk = self.__ledger.get_pk() 
 
         deg = self.__ledger.get_t() + l 
         P = [random.randint(0, q - 1) for _ in range(deg + 1)]
@@ -30,10 +31,9 @@ class PPVSS:
 
         return P, S, fragments
 
-    def __lambdas(self, reco_parties):
+    def __lambdas(self, reco_parties, t):
         """Calculates the lambda coefficients for secret reconstruction."""
         
-        t = len(reco_parties)
         lambs = [[0] * self.__ledger.l for _ in range(t)]
         q = self.__ledger.q
 
@@ -55,24 +55,48 @@ class PPVSS:
 
     def reconstruct(self, reco_parties):
         """Reconstructs the secret using the ledger and performs a local LDEI verification."""
-        
-        sigtilde = [self.__ledger.revealed_fragments[party_id - 1] for party_id in reco_parties]
+        reco_parties = [x + 1 for x in reco_parties]
+        print("reco_parties: ", reco_parties)
+        sigtilde = [self.__ledger.revealed_fragments[party_id-1] for party_id in reco_parties] # Pueden estar mal colocados
 
-        t = self.__ledger.n - self.__ledger.t
         r = self.__ledger.n - self.__ledger.t
         l = self.__ledger.l
         p = self.__ledger.p
         q = self.__ledger.q
+        t = self.__ledger.n - self.__ledger.t
 
-        print("n: ", self.__ledger.n)
-        print("t1: ", self.__ledger.t)
-        print("l: ", self.__ledger.l)
-        print("t2: ", t)
-        print("r: ", r)
+        
 
-        lambs = self.__lambdas(reco_parties)
+        lambs = self.__lambdas(reco_parties, t)
         Sec = [0] * l
         for j in range(l):
-            Sec[l - j - 1] = sum(lambs[i][j] * sigtilde[i] for i in range(len(reco_parties))) % q
+            Sec[l-j-1] = 1
+
+            for i in range(t):
+                tmp = pow(sigtilde[i], lambs[i][j], p)
+                Sec[l-j-1] = (Sec[l-j-1] * tmp) % p
+
+        # Operaciones mod q
+        alphaverif = []
+        for j in range(l):
+            alphaverif.append(j-l+1)
+
+        for j in range(l, r+l):
+            alphaverif.append(reco_parties[j-l])
+
+        # Operaciones mod p
+        xverif = []
+        for j in range(l):
+            xverif.append(Sec[j])
+
+        for j in range(l, r+l):
+            xverif.append(sigtilde[j-l])
+
+        print("xverif: ", len(xverif))
+
+        # Verificación LDEI local
+        if not LDEI.localldei(q, p, alphaverif, self.__ledger.t + l, xverif, r + l):
+            print("La verificación LDEI local falló.")
+            return False
 
         return Sec

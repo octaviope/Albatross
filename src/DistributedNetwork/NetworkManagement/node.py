@@ -8,7 +8,7 @@ from ALBATROSSProtocol.PPVSSProtocol.PPVSS import PPVSS
 from ALBATROSSProtocol.Proofs.DLEQ import DLEQ
 
 
-class Node:
+class Node: 
     def __init__(self, id, node_type, n, q, p, h):
         self.id = id
         self.node_type = node_type  # Node type: HONEST and MALICIOUS
@@ -49,7 +49,7 @@ class Node:
         encrypted_fragments = [pow(ledger.pk[i], evaluations[i + ledger.l], ledger.p) for i in range(ledger.n)]
         for i in range(ledger.n):
             if not (encrypted_fragments[i] == ledger.encrypted_fragments[i]):
-                print(f"The polynomial published by node {node_id} is not correct.")
+                print("The polynomial published by node {node_id} is not correct.")
                 return False
         return True
 
@@ -75,7 +75,7 @@ class Node:
     
     def reveal(self):
         ledger: Ledger = self.ledgers[self.id]
-        if self.node_type == "MALICIOSO":
+        if self.node_type == "MALICIOUS":
             ledger.P = [1]
         else:
             ledger.P = self.P
@@ -84,7 +84,7 @@ class Node:
 
         self.sync_all_nodes()
 
-        # Verify polynomial
+        # Verify polynomial 
         for node_id in range(ledger.n):
             if node_id != self.id: 
                 try:
@@ -124,7 +124,7 @@ class Node:
         
         ledger: Ledger = self.ledgers[failed_node]
         for i, e in enumerate(reco_parties):
-            reco_parties[i] = e+1
+            reco_parties[i] = e
 
         sec = PPVSS(ledger).reconstruct(reco_parties)
         lista_sec = [int(x) for x in sec]
