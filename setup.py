@@ -12,7 +12,6 @@ setup(
         "sympy==1.12.1",
         "matplotlib==3.9.0",
         "networkx==3.1",
-        "gmpy2==2.1.5",
     ],
     entry_points={
         'console_scripts': [
