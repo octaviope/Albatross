@@ -25,7 +25,7 @@ class Network:
         for i in range(self.n):
             # Type selection
             r = random.random()
-            if r < 0.75: 
+            if r < 0.85: 
                 node_type = "HONEST"
             else:
                 node_type = "MALICIOUS"
